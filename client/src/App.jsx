@@ -6,11 +6,12 @@ import Dashboard from './pages/Dashboard';
 import Purchases from './pages/Purchases';
 import Transfers from './pages/Transfers';
 import Assignments from './pages/Assignments';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
     <Routes>
-      {/* Landing Page at */}
+      {/* Landing/Login Page */}
       <Route
         path="/"
         element={
@@ -21,49 +22,60 @@ function App() {
         }
       />
 
-      {/* Dashboard & Pages */}
+      {/* Protected Routes with Sidebar Layout */}
       <Route
         path="/dashboard"
         element={
-          <div className="flex">
-            <Sidebar />
-            <div className="ml-20 w-full">
-              <Dashboard />
+          <ProtectedRoute allowedRoles={['admin', 'base_commander', 'logistics_officer']}>
+            <div className="flex">
+              <Sidebar />
+              <div className="ml-20 w-full">
+                <Dashboard />
+              </div>
             </div>
-          </div>
+          </ProtectedRoute>
         }
       />
+
       <Route
         path="/purchases"
         element={
-          <div className="flex">
-            <Sidebar />
-            <div className="ml-20 w-full">
-              <Purchases />
+          <ProtectedRoute allowedRoles={['admin', 'logistics_officer']}>
+            <div className="flex">
+              <Sidebar />
+              <div className="ml-20 w-full">
+                <Purchases />
+              </div>
             </div>
-          </div>
+          </ProtectedRoute>
         }
       />
+
       <Route
         path="/transfers"
         element={
-          <div className="flex">
-            <Sidebar />
-            <div className="ml-20 w-full">
-              <Transfers />
+          <ProtectedRoute allowedRoles={['admin', 'logistics_officer']}>
+            <div className="flex">
+              <Sidebar />
+              <div className="ml-20 w-full">
+                <Transfers />
+              </div>
             </div>
-          </div>
+          </ProtectedRoute>
         }
       />
+
       <Route
         path="/assignments"
         element={
-          <div className="flex">
-            <Sidebar />
-            <div className="ml-20  w-full">
-              <Assignments />
+          <ProtectedRoute allowedRoles={['admin', 'base_commander']}>
+            <div className="flex">
+              <Sidebar />
+              <div className="ml-20 w-full">
+                <Assignments />
+              </div>
             </div>
-          </div>
+          </ProtectedRoute>
         }
       />
     </Routes>
