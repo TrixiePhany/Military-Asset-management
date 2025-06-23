@@ -1,60 +1,95 @@
-import React from 'react';
-import background from '../assets/EveryPage.jpg';
+// pages/Assignments.jsx
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 export default function Assignments() {
+  const [tab, setTab] = useState('assignments');
+  const [assignments, setAssignments] = useState([]);
+  const [expenditures, setExpenditures] = useState([]);
+
+  const token = localStorage.getItem('token');
+  const baseId = localStorage.getItem('baseId');
+
+  const fetchData = async () => {
+    try {
+      const headers = { Authorization: `Bearer ${token}` };
+      const resAssign = await axios.get(`http://localhost:3000/api/assignments?base_id=${baseId}`, { headers });
+      const resExpend = await axios.get(`http://localhost:3000/api/expenditures?base_id=${baseId}`, { headers });
+      setAssignments(resAssign.data);
+      setExpenditures(resExpend.data);
+    } catch (err) {
+      console.error('Error fetching data', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   return (
-    <div
-      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed text-white w-full h-full"
-      style={{ backgroundImage: `url(${background})` }}
-    >
-      <div className="p-6 px-4 md:px-16">
-        <h1 className="text-3xl font-bold mb-6">Assignments & Expenditures</h1>
+    <div className="p-6 text-white">
+      <h2 className="text-2xl font-bold mb-4">Assignments & Expenditures</h2>
 
-        {/* Filter Section */}
-        <div className="bg-[rgba(30,78,34,0.3)] p-4 rounded-lg mb-6 flex flex-wrap gap-4 items-center shadow-md">
-          <div>
-            <label className="block text-sm mb-1">From Date</label>
-            <input
-              type="date"
-              className="text-black px-3 py-1 rounded-md bg-white"
-            />
-          </div>
-          <div>
-            <label className="block text-sm mb-1">To Date</label>
-            <input
-              type="date"
-              className="text-black px-3 py-1 rounded-md bg-white"
-            />
-          </div>
-          <div>
-            <label className="block text-sm mb-1">Personnel</label>
-            <input
-              type="text"
-              placeholder="e.g. Officer A"
-              className="text-black px-3 py-1 rounded-md bg-white"
-            />
-          </div>
-          <button className="ml-auto bg-[rgba(73,167,81,0.58)] hover:bg-[rgba(107,163,112,0.52)] text-white font-semibold px-4 py-2 rounded-md mt-6 md:mt-0">
-            Apply Filters
-          </button>
-        </div>
-
-        {/* Assigned Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Assigned Assets</h2>
-          <div className="bg-[rgba(30,78,34,0.2)] p-4 rounded-lg shadow-md">
-            <p className="text-white/80 italic">Assigned asset data will appear here.</p>
-          </div>
-        </div>
-
-        {/* Expended Section */}
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">Expended Assets</h2>
-          <div className="bg-[rgba(30,78,34,0.2)] p-4 rounded-lg shadow-md">
-            <p className="text-white/80 italic">Expended asset data will appear here.</p>
-          </div>
-        </div>
+      {/* Tabs */}
+      <div className="flex gap-4 mb-6">
+        <button
+          onClick={() => setTab('assignments')}
+          className={`px-4 py-2 rounded ${tab === 'assignments' ? 'bg-green-700' : 'bg-green-900'}`}
+        >
+          Assignments
+        </button>
+        <button
+          onClick={() => setTab('expenditures')}
+          className={`px-4 py-2 rounded ${tab === 'expenditures' ? 'bg-green-700' : 'bg-green-900'}`}
+        >
+          Expenditures
+        </button>
       </div>
+
+      {/* Table */}
+      {tab === 'assignments' && (
+        <table className="w-full table-auto bg-[rgba(0,0,0,0.3)] rounded-lg overflow-hidden">
+          <thead className="bg-green-900">
+            <tr>
+              <th className="px-4 py-2">Date</th>
+              <th className="px-4 py-2">Asset</th>
+              <th className="px-4 py-2">Personnel</th>
+              <th className="px-4 py-2">Quantity</th>
+            </tr>
+          </thead>
+          <tbody>
+            {assignments.map((row) => (
+              <tr key={row.id} className="text-center border-t border-green-700">
+                <td className="px-4 py-2">{new Date(row.assignment_date).toLocaleDateString()}</td>
+                <td className="px-4 py-2">{row.asset_name}</td>
+                <td className="px-4 py-2">{row.personnel_name}</td>
+                <td className="px-4 py-2">{row.quantity}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {tab === 'expenditures' && (
+        <table className="w-full table-auto bg-[rgba(0,0,0,0.3)] rounded-lg overflow-hidden">
+          <thead className="bg-green-900">
+            <tr>
+              <th className="px-4 py-2">Date</th>
+              <th className="px-4 py-2">Asset</th>
+              <th className="px-4 py-2">Quantity</th>
+            </tr>
+          </thead>
+          <tbody>
+            {expenditures.map((row) => (
+              <tr key={row.id} className="text-center border-t border-green-700">
+                <td className="px-4 py-2">{new Date(row.expenditure_date).toLocaleDateString()}</td>
+                <td className="px-4 py-2">{row.asset_name}</td>
+                <td className="px-4 py-2">{row.quantity}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
