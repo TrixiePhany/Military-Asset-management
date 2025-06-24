@@ -14,7 +14,6 @@ export default function Purchases() {
   const [newPurchase, setNewPurchase] = useState({
     base_id: '',
     asset_id: '',
-   
     date: ''
   });
   const [formMsg, setFormMsg] = useState('');
@@ -22,8 +21,7 @@ export default function Purchases() {
   const fetchPurchases = async () => {
     try {
       const token = localStorage.getItem('token');
-      const query = new URLSearchParams(filters).toString();
-      const res = await axios.get(`http://localhost:3000/api/purchases?${query}`, {
+      const res = await axios.get(`http://localhost:3000/api/purchases`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setPurchases(res.data);
@@ -132,9 +130,9 @@ export default function Purchases() {
             {purchases.map((purchase) => (
               <tr key={purchase.id} className="text-center border-t border-green-700">
                 <td className="px-4 py-2">{new Date(purchase.purchase_date).toLocaleDateString()}</td>
-                <td className="px-4 py-2">{purchase.asset_name}</td>
-                <td className="px-4 py-2">{purchase.asset_type}</td>
-                <td className="px-4 py-2">{purchase.base_name}</td>
+                <td className="px-4 py-2">{purchase.asset}</td>
+                <td className="px-4 py-2">{purchase.type}</td>
+                <td className="px-4 py-2">{purchase.base}</td>
               </tr>
             ))}
           </tbody>
