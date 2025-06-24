@@ -20,8 +20,8 @@ const pool = new Pool({
 // Middleware
 app.use(cors(
   {
-    origin: 'http://localhost:5173', 
-    credentials: true, 
+    origin: 'http://localhost:5173',
+    credentials: true,
   }
 ));
 app.use(express.json());
@@ -160,6 +160,29 @@ app.get('/api/purchases', checkRole(['admin', 'logistics_officer']), auditLog, a
   }
 });
 
+
+app.get('/api/purchases/filters', checkRole(['admin', 'logistics_officer']), auditLog, async (req, res) => {
+  try {
+    const { baseId, startDate, endDate, equipmentType } = req.query;
+    let query = `SELECT 
+                    p.purchase_date,
+                    a.name as asset,
+                    a.type,
+                    b.name as base
+                FROM 
+                    purchases p
+                JOIN 
+                    assets a ON p.asset_id = a.id
+                JOIN 
+                    bases b ON p.base_id = b.id
+                WHERE a.type = 'Weapons'`;
+    const result = await pool.query(query);
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error fetching filtered purchases:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 
 // Transfers (Logistics Officer and Admin)

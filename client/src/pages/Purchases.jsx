@@ -30,6 +30,19 @@ export default function Purchases() {
     }
   };
 
+  const applyFilters = () => {
+    try {
+      const query = new URLSearchParams(filters).toString();
+      const res = axios.get(`http://localhost:3000/api/purchases/filters?${query}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+
+      setPurchases(res.data);
+    } catch (err) {
+      console.error('Error applying filters', err);
+    }
+  };
+
   const handleChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
@@ -103,7 +116,7 @@ export default function Purchases() {
             <option value="supplies">Supplies</option>
           </select>
           <button
-            onClick={fetchPurchases}
+            onClick={applyFilters}
             className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded"
           >
             Apply Filters

@@ -26,7 +26,7 @@ CREATE TABLE assets (
     price NUMERIC(12, 2) NOT NULL
 );
 
-REATE TABLE purchases (
+CREATE TABLE purchases (
     id SERIAL PRIMARY KEY,
     base_id INTEGER REFERENCES bases(id) ,
     asset_id INTEGER REFERENCES assets(id),
