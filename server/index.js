@@ -26,7 +26,7 @@ app.use(cors(
 ));
 app.use(express.json());
 
-// RBAC Middleware
+// RBAC Middleware // done
 const checkRole = (roles) => (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
@@ -58,7 +58,7 @@ const auditLog = async (req, res, next) => {
   }
 };
 
-// Authentication Route
+// Authentication Route // done
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -122,19 +122,45 @@ app.get('/api/dashboard/:baseId', checkRole(['admin', 'base_commander']), async 
   }
 });
 
-// Purchases (Logistics Officer and Admin)
+// Purchases (Logistics Officer and Admin) // done
 app.post('/api/purchases', checkRole(['admin', 'logistics_officer']), auditLog, async (req, res) => {
-  const { base_id, asset_id, quantity, date } = req.body;
+  const { base_id, asset_id, date } = req.body;
   try {
     await pool.query(
-      'INSERT INTO purchases (base_id, asset_id, quantity, purchase_date) VALUES ($1, $2, $3, $4)',
-      [base_id, asset_id, quantity, date]
+      'INSERT INTO purchases (base_id, asset_id, purchase_date) VALUES ($1, $2, $3)',
+      [base_id, asset_id, date]
     );
     res.status(201).json({ message: 'Purchase recorded' });
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+// Fetch Purchases (Logistics Officer and Admin)
+app.get('/api/purchases', checkRole(['admin', 'logistics_officer']), auditLog, async (req, res) => {
+  try {
+    let query = `SELECT 
+                      p.purchase_date,
+                      a.name as asset,
+                      a.type,
+                      b.name as base
+                  FROM 
+                      purchases p
+                  JOIN 
+                      assets a ON p.asset_id = a.id
+                  JOIN 
+                      bases b ON p.base_id = b.id
+                  ORDER BY 
+                      p.purchase_date DESC`;
+    const result = await pool.query(query);
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error fetching purchases:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
 
 // Transfers (Logistics Officer and Admin)
 app.post('/api/transfers', checkRole(['admin', 'logistics_officer']), auditLog, async (req, res) => {
