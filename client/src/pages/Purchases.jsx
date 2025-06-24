@@ -1,4 +1,3 @@
-// pages/Purchases.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import background from '../assets/EveryPage.jpg';
@@ -15,7 +14,7 @@ export default function Purchases() {
   const [newPurchase, setNewPurchase] = useState({
     base_id: '',
     asset_id: '',
-    // quantity: '',
+   
     date: ''
   });
   const [formMsg, setFormMsg] = useState('');
@@ -23,7 +22,8 @@ export default function Purchases() {
   const fetchPurchases = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`http://localhost:3000/api/purchases`, {
+      const query = new URLSearchParams(filters).toString();
+      const res = await axios.get(`http://localhost:3000/api/purchases?${query}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setPurchases(res.data);
@@ -34,6 +34,12 @@ export default function Purchases() {
 
   const handleChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
+  };
+
+  const handleResetFilters = () => {
+    const cleared = { baseId: '', startDate: '', endDate: '', equipmentType: '' };
+    setFilters(cleared);
+    setTimeout(fetchPurchases, 0);
   };
 
   const handleCreatePurchase = async () => {
@@ -104,6 +110,12 @@ export default function Purchases() {
           >
             Apply Filters
           </button>
+          <button
+            onClick={handleResetFilters}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded"
+          >
+            Reset
+          </button>
         </div>
 
         {/* Table */}
@@ -114,17 +126,15 @@ export default function Purchases() {
               <th className="px-4 py-2">Asset</th>
               <th className="px-4 py-2">Type</th>
               <th className="px-4 py-2">Base</th>
-              {/* <th className="px-4 py-2">Quantity</th> */}
             </tr>
           </thead>
           <tbody>
             {purchases.map((purchase) => (
               <tr key={purchase.id} className="text-center border-t border-green-700">
                 <td className="px-4 py-2">{new Date(purchase.purchase_date).toLocaleDateString()}</td>
-                <td className="px-4 py-2">{purchase.asset}</td>
-                <td className="px-4 py-2">{purchase.type}</td>
-                <td className="px-4 py-2">{purchase.base}</td>
-                {/* <td className="px-4 py-2">{purchase.quantity}</td> */}
+                <td className="px-4 py-2">{purchase.asset_name}</td>
+                <td className="px-4 py-2">{purchase.asset_type}</td>
+                <td className="px-4 py-2">{purchase.base_name}</td>
               </tr>
             ))}
           </tbody>
@@ -147,13 +157,6 @@ export default function Purchases() {
             onChange={(e) => setNewPurchase({ ...newPurchase, asset_id: e.target.value })}
             className="px-3 py-2 text-black rounded"
           />
-          {/* <input
-            type="number"
-            placeholder="Quantity"
-            value={newPurchase.quantity}
-            onChange={(e) => setNewPurchase({ ...newPurchase, quantity: e.target.value })}
-            className="px-3 py-2 text-black rounded"
-          /> */}
           <input
             type="date"
             value={newPurchase.date}
