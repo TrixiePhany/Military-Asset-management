@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
@@ -6,19 +5,60 @@ export default function Assignments() {
   const [tab, setTab] = useState('assignments');
   const [assignments, setAssignments] = useState([]);
   const [expenditures, setExpenditures] = useState([]);
+  const [form, setForm] = useState({
+    asset_id: '',
+    personnel_id: '',
+    quantity: '',
+    date: ''
+  });
+  const [message, setMessage] = useState('');
 
   const token = localStorage.getItem('token');
   const baseId = localStorage.getItem('baseId');
+  const headers = { Authorization: `Bearer ${token}` };
 
   const fetchData = async () => {
     try {
-      const headers = { Authorization: `Bearer ${token}` };
-      const resAssign = await axios.get(`http://localhost:3000/api/assignments?base_id=${baseId}`, { headers });
-      const resExpend = await axios.get(`http://localhost:3000/api/expenditures?base_id=${baseId}`, { headers });
+      const resAssign = await axios.get('http://localhost:3000/api/assignments', { headers });
+      
+      let resExpend = { data: [] };
+      if (baseId) {
+        resExpend = await axios.get(`http://localhost:3000/api/expenditures?base_id=${baseId}`, { headers });
+      }
+
       setAssignments(resAssign.data);
       setExpenditures(resExpend.data);
     } catch (err) {
       console.error('Error fetching data', err);
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      if (tab === 'assignments') {
+        await axios.post('http://localhost:3000/api/assignments', {
+          asset_id: form.asset_id,
+          personnel_id: form.personnel_id,
+          date: form.date
+        }, { headers });
+
+        setMessage('Assignment recorded successfully.');
+      } else {
+        await axios.post('http://localhost:3000/api/expenditures', {
+          base_id: baseId,
+          asset_id: form.asset_id,
+          quantity: parseInt(form.quantity, 10),
+          date: form.date
+        }, { headers });
+
+        setMessage('Expenditure recorded successfully.');
+      }
+
+      setForm({ asset_id: '', personnel_id: '', quantity: '', date: '' });
+      fetchData();
+    } catch (err) {
+      console.error('Error submitting form:', err);
+      setMessage('Submission failed.');
     }
   };
 
@@ -33,17 +73,59 @@ export default function Assignments() {
       {/* Tabs */}
       <div className="flex gap-4 mb-6">
         <button
-          onClick={() => setTab('assignments')}
+          onClick={() => { setTab('assignments'); setMessage(''); }}
           className={`px-4 py-2 rounded ${tab === 'assignments' ? 'bg-green-700' : 'bg-green-900'}`}
         >
           Assignments
         </button>
         <button
-          onClick={() => setTab('expenditures')}
+          onClick={() => { setTab('expenditures'); setMessage(''); }}
           className={`px-4 py-2 rounded ${tab === 'expenditures' ? 'bg-green-700' : 'bg-green-900'}`}
         >
           Expenditures
         </button>
+      </div>
+
+      {/* Form */}
+      <div className="bg-[rgba(0,0,0,0.4)] p-4 rounded mb-8 flex flex-col gap-4 max-w-xl">
+        <input
+          type="number"
+          placeholder="Asset ID"
+          value={form.asset_id}
+          onChange={(e) => setForm({ ...form, asset_id: e.target.value })}
+          className="px-3 py-2 text-black rounded"
+        />
+        {tab === 'assignments' && (
+          <input
+            type="number"
+            placeholder="Personnel ID"
+            value={form.personnel_id}
+            onChange={(e) => setForm({ ...form, personnel_id: e.target.value })}
+            className="px-3 py-2 text-black rounded"
+          />
+        )}
+        {tab === 'expenditures' && (
+          <input
+            type="number"
+            placeholder="Quantity"
+            value={form.quantity}
+            onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+            className="px-3 py-2 text-black rounded"
+          />
+        )}
+        <input
+          type="date"
+          value={form.date}
+          onChange={(e) => setForm({ ...form, date: e.target.value })}
+          className="px-3 py-2 text-black rounded"
+        />
+        <button
+          onClick={handleSubmit}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded"
+        >
+          Submit {tab === 'assignments' ? 'Assignment' : 'Expenditure'}
+        </button>
+        {message && <p className="text-green-300">{message}</p>}
       </div>
 
       {/* Table */}
@@ -54,7 +136,6 @@ export default function Assignments() {
               <th className="px-4 py-2">Date</th>
               <th className="px-4 py-2">Asset</th>
               <th className="px-4 py-2">Personnel</th>
-              <th className="px-4 py-2">Quantity</th>
             </tr>
           </thead>
           <tbody>
@@ -63,7 +144,6 @@ export default function Assignments() {
                 <td className="px-4 py-2">{new Date(row.assignment_date).toLocaleDateString()}</td>
                 <td className="px-4 py-2">{row.asset_name}</td>
                 <td className="px-4 py-2">{row.personnel_name}</td>
-                <td className="px-4 py-2">{row.quantity}</td>
               </tr>
             ))}
           </tbody>

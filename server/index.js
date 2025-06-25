@@ -136,7 +136,7 @@ app.post('/api/purchases', checkRole(['admin', 'logistics_officer']), auditLog, 
   }
 });
 
-// Fetch Purchases (Logistics Officer and Admin)
+// Fetch Purchases (Logistics Officer and Admin) done
 app.get('/api/purchases', checkRole(['admin', 'logistics_officer']), auditLog, async (req, res) => {
   try {
     let query = `SELECT 
@@ -213,10 +213,9 @@ app.get('/api/purchases/filters', checkRole(['admin', 'logistics_officer']), aud
 
 
 
-// Transfers (Logistics Officer and Admin)
+// Transfers (Logistics Officer and Admin) done
 app.post('/api/transfers', checkRole(['admin', 'logistics_officer']), auditLog, async (req, res) => {
   const { from_baseid, to_baseid, asset_id, date } = req.body;
-  console.log('Transfer POST body:', req.body); // one line
   try {
     await pool.query(
       'INSERT INTO transfers (from_baseid, to_baseid, asset_id, transfer_date) VALUES ($1, $2, $3, $4)',
@@ -224,12 +223,12 @@ app.post('/api/transfers', checkRole(['admin', 'logistics_officer']), auditLog, 
     );
     res.status(201).json({ message: 'Transfer recorded' });
   } catch (error) {
-    console.error('Error creating transfer:', error); //  DB line 
+    console.error('Error creating transfer:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// Fetching and gettting Transfer History (admi + logistics)
+// Fetching and gettting Transfer History (admi + logistics) done
 app.get('/api/transfers', checkRole(['admin', 'logistics_officer']), auditLog, async (req, res) => {
   try {
     const result = await pool.query(`
@@ -251,19 +250,23 @@ app.get('/api/transfers', checkRole(['admin', 'logistics_officer']), auditLog, a
   }
 });
 
-// Assignments (Base Commander and Admin)
+// Assignments (Base Commander and Admin) 
 app.post('/api/assignments', checkRole(['admin', 'base_commander']), auditLog, async (req, res) => {
-  const { base_id, asset_id, personnel_id,  date } = req.body;
+  const { asset_id, personnel_id, date } = req.body;
+  console.log('Income aa raha hain assignment POST:', req.body); //this
+
   try {
     await pool.query(
-      'INSERT INTO assignments (base_id, asset_id, personnel_id, quantity, assignment_date) VALUES ($1, $2, $3, $4, $5)',
-      [base_id, asset_id, personnel_id, date]
+      'INSERT INTO assignments (asset_id, personnel_id, assignment_date) VALUES ($1, $2, $3)',
+      [asset_id, personnel_id, date]
     );
     res.status(201).json({ message: 'Assignment recorded' });
   } catch (error) {
+    console.error('Assignment error:', error); //  this here
     res.status(500).json({ error: 'Server error' });
   }
 });
+
 
 // Expenditures (Base Commander and Admin)
 app.post('/api/expenditures', checkRole(['admin', 'base_commander']), auditLog, async (req, res) => {
