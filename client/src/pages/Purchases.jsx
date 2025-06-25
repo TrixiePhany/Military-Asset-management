@@ -30,10 +30,11 @@ export default function Purchases() {
     }
   };
 
-  const applyFilters = () => {
+  const applyFilters = async () => {
     try {
       const query = new URLSearchParams(filters).toString();
-      const res = axios.get(`http://localhost:3000/api/purchases/filters?${query}`, {
+      console.log('Filter query:', query);
+      const res = await axios.get(`http://localhost:3000/api/purchases/filters?${query}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
 
@@ -111,9 +112,9 @@ export default function Purchases() {
             className="px-3 py-2 text-black rounded"
           >
             <option value="">All Types</option>
-            <option value="vehicle">Vehicles</option>
-            <option value="weapon">Weapons</option>
-            <option value="supplies">Supplies</option>
+            <option value="Weapons">Weapons</option>
+            <option value="Vehicle">Vehicle</option>
+            <option value="Ammunition">Ammunition</option>
           </select>
           <button
             onClick={applyFilters}

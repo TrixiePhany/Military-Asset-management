@@ -19,7 +19,7 @@ export default function HeroSection() {
       const { token } = res.data;
       const decoded = JSON.parse(atob(token.split('.')[1]));
 
-      localStorage.setItem('token', token);
+      localStorage.setItem('token', token);// chnages here
       localStorage.setItem('role', decoded.role);
       localStorage.setItem('userId', decoded.id);
       localStorage.setItem('baseId', decoded.base_id);

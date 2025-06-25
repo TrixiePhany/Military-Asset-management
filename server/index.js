@@ -164,19 +164,46 @@ app.get('/api/purchases', checkRole(['admin', 'logistics_officer']), auditLog, a
 app.get('/api/purchases/filters', checkRole(['admin', 'logistics_officer']), auditLog, async (req, res) => {
   try {
     const { baseId, startDate, endDate, equipmentType } = req.query;
+    let conditions = [];
+    let values = [];
+    let i =1 ;
+
+    if (baseId) {
+      conditions.push(`p.base_id = $${i++}`);
+      values.push(baseId);
+    }
+
+    if (startDate) {
+      conditions.push(`p.purchase_date >= $${i++}`);
+      values.push(startDate);
+    }
+
+    if (endDate) {
+      conditions.push(`p.purchase_date <= $${i++}`);
+      values.push(endDate);
+    }
+
+    if (equipmentType) {
+      conditions.push(`a.type ILIKE $${i++}`);
+      values.push(equipmentType);
+    }
     let query = `SELECT 
                     p.purchase_date,
-                    a.name as asset,
+                    a.name AS asset,
                     a.type,
-                    b.name as base
-                FROM 
-                    purchases p
-                JOIN 
-                    assets a ON p.asset_id = a.id
-                JOIN 
-                    bases b ON p.base_id = b.id
-                WHERE a.type = 'Weapons'`;
-    const result = await pool.query(query);
+                    b.name AS base
+                FROM purchases p
+                JOIN assets a ON p.asset_id = a.id
+                JOIN bases b ON p.base_id = b.id`;
+
+    
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ' ORDER BY p.purchase_date DESC';
+
+    const result = await pool.query(query, values);
     res.status(200).json(result.rows);
   } catch (error) {
     console.error('Error fetching filtered purchases:', error);
@@ -185,27 +212,52 @@ app.get('/api/purchases/filters', checkRole(['admin', 'logistics_officer']), aud
 });
 
 
+
 // Transfers (Logistics Officer and Admin)
 app.post('/api/transfers', checkRole(['admin', 'logistics_officer']), auditLog, async (req, res) => {
-  const { from_base_id, to_base_id, asset_id, quantity, date } = req.body;
+  const { from_baseid, to_baseid, asset_id, date } = req.body;
+  console.log('Transfer POST body:', req.body); // one line
   try {
     await pool.query(
-      'INSERT INTO transfers (from_base_id, to_base_id, asset_id, quantity, transfer_date) VALUES ($1, $2, $3, $4, $5)',
-      [from_base_id, to_base_id, asset_id, quantity, date]
+      'INSERT INTO transfers (from_baseid, to_baseid, asset_id, transfer_date) VALUES ($1, $2, $3, $4)',
+      [from_baseid, to_baseid, asset_id, date]
     );
     res.status(201).json({ message: 'Transfer recorded' });
   } catch (error) {
+    console.error('Error creating transfer:', error); //  DB line 
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Fetching and gettting Transfer History (admi + logistics)
+app.get('/api/transfers', checkRole(['admin', 'logistics_officer']), auditLog, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        t.transfer_date,
+        a.name AS asset,
+        b1.name AS from_base,
+        b2.name AS to_base
+      FROM transfers t
+      JOIN assets a ON t.asset_id = a.id
+      JOIN bases b1 ON t.from_baseid = b1.id
+      JOIN bases b2 ON t.to_baseid = b2.id
+      ORDER BY t.transfer_date DESC
+    `);
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error fetching transfers:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
 // Assignments (Base Commander and Admin)
 app.post('/api/assignments', checkRole(['admin', 'base_commander']), auditLog, async (req, res) => {
-  const { base_id, asset_id, personnel_id, quantity, date } = req.body;
+  const { base_id, asset_id, personnel_id,  date } = req.body;
   try {
     await pool.query(
       'INSERT INTO assignments (base_id, asset_id, personnel_id, quantity, assignment_date) VALUES ($1, $2, $3, $4, $5)',
-      [base_id, asset_id, personnel_id, quantity, date]
+      [base_id, asset_id, personnel_id, date]
     );
     res.status(201).json({ message: 'Assignment recorded' });
   } catch (error) {
