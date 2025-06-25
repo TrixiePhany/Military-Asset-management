@@ -251,33 +251,115 @@ app.get('/api/transfers', checkRole(['admin', 'logistics_officer']), auditLog, a
 });
 
 // Assignments (Base Commander and Admin) 
-app.post('/api/assignments', checkRole(['admin', 'base_commander']), auditLog, async (req, res) => {
-  const { asset_id, personnel_id, date } = req.body;
-  console.log('Income aa raha hain assignment POST:', req.body); //this
-
+app.get('/api/assignments', checkRole(['admin', 'base_commander']), auditLog, async (req, res) => {
   try {
-    await pool.query(
-      'INSERT INTO assignments (asset_id, personnel_id, assignment_date) VALUES ($1, $2, $3)',
-      [asset_id, personnel_id, date]
-    );
-    res.status(201).json({ message: 'Assignment recorded' });
+    const query = `SELECT a1.assignment_date as date, p.name AS personnel, a2.name AS asset
+                   FROM assignments a1
+                   JOIN personnel p ON a1.personnel_id = p.id
+                   JOIN assets a2 ON a1.asset_id = a2.id
+                   ORDER BY a1.assignment_date DESC`;
+
+    const result = await pool.query(query);
+    res.status(200).json(result.rows);
   } catch (error) {
-    console.error('Assignment error:', error); //  this here
+    console.error('Error fetching assignments:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-
-// Expenditures (Base Commander and Admin)
-app.post('/api/expenditures', checkRole(['admin', 'base_commander']), auditLog, async (req, res) => {
-  const { base_id, asset_id, quantity, date } = req.body;
+app.get('/api/assignments/filters', checkRole(['admin', 'base_commander']), async (req, res) => {
+  const { asset_id, personnel_id, date } = req.query;
+  
   try {
-    await pool.query(
-      'INSERT INTO expenditures (base_id, asset_id, quantity, expenditure_date) VALUES ($1, $2, $3, $4)',
-      [base_id, asset_id, quantity, date]
-    );
-    res.status(201).json({ message: 'Expenditure recorded' });
+    let conditions = [];
+    let values = [];
+    let i = 1;
+
+    if (asset_id) {
+      conditions.push(`a1.asset_id = $${i++}`);
+      values.push(asset_id);
+    }
+
+    if (personnel_id) {
+      conditions.push(`a1.personnel_id = $${i++}`);
+      values.push(personnel_id);
+    }
+
+    if (date) {
+      conditions.push(`a1.assignment_date = $${i++}`);
+      values.push(date);
+    }
+
+    let query = `SELECT a1.assignment_date as date, p.name AS personnel, a2.name AS asset
+                 FROM assignments a1
+                 JOIN personnel p ON a1.personnel_id = p.id
+                 JOIN assets a2 ON a1.asset_id = a2.id`;
+    
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ' ORDER BY a1.assignment_date DESC';
+    const result = await pool.query(query, values);
+    res.status(200).json(result.rows);
   } catch (error) {
+    console.error('Error fetching assignments:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/expenditures', checkRole(['admin', 'base_commander']), async (req, res) => {
+  try {
+    const query = `SELECT e.expenditure_date as date, a.name AS asset, e.quantity
+                   FROM expenditures e
+                   JOIN assets a ON e.asset_id = a.id
+                   ORDER BY e.expenditure_date DESC`;
+
+    const result = await pool.query(query);
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error fetching expenditures:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/expenditures/filters', checkRole(['admin', 'base_commander']), async (req, res) => {
+  const { asset_id, quantity, date } = req.query;
+
+  try {
+    let conditions = [];
+    let values = [];
+    let i = 1;
+
+    if (asset_id && asset_id !== '' && !isNaN(asset_id)) {
+      conditions.push(`e.asset_id = $${i++}`);
+      values.push(asset_id);
+    }
+
+    if (quantity && quantity !== '' && !isNaN(quantity)) {
+      conditions.push(`e.quantity = $${i++}`);
+      values.push(quantity);
+    }
+
+    if (date && date !== '' && !isNaN(Date.parse(date))) {
+      conditions.push(`e.expenditure_date = $${i++}`);
+      values.push(date);
+    }
+
+    let query = `SELECT e.expenditure_date as date, a.name AS asset, e.quantity
+                 FROM expenditures e
+                 JOIN assets a ON e.asset_id = a.id`;
+    
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ' ORDER BY e.expenditure_date DESC';
+    const result = await pool.query(query, values);
+    res.status(200).json(result.rows);
+
+  } catch (error) {
+    console.error('Error fetching expenditures:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

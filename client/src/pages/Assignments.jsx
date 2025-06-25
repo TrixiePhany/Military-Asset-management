@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 export default function Assignments() {
@@ -14,17 +14,12 @@ export default function Assignments() {
   const [message, setMessage] = useState('');
 
   const token = localStorage.getItem('token');
-  const baseId = localStorage.getItem('baseId');
   const headers = { Authorization: `Bearer ${token}` };
 
   const fetchData = async () => {
     try {
       const resAssign = await axios.get('http://localhost:3000/api/assignments', { headers });
-      
-      let resExpend = { data: [] };
-      if (baseId) {
-        resExpend = await axios.get(`http://localhost:3000/api/expenditures?base_id=${baseId}`, { headers });
-      }
+      const resExpend = await axios.get('http://localhost:3000/api/expenditures', { headers });
 
       setAssignments(resAssign.data);
       setExpenditures(resExpend.data);
@@ -36,26 +31,48 @@ export default function Assignments() {
   const handleSubmit = async () => {
     try {
       if (tab === 'assignments') {
-        await axios.post('http://localhost:3000/api/assignments', {
-          asset_id: form.asset_id,
-          personnel_id: form.personnel_id,
-          date: form.date
-        }, { headers });
+        const params = new URLSearchParams();
 
-        setMessage('Assignment recorded successfully.');
-      } else {
-        await axios.post('http://localhost:3000/api/expenditures', {
-          base_id: baseId,
-          asset_id: form.asset_id,
-          quantity: parseInt(form.quantity, 10),
-          date: form.date
-        }, { headers });
+        for (const key in form) {
+          const value = form[key];
 
-        setMessage('Expenditure recorded successfully.');
+          // Skip null, undefined, empty string, or NaN
+          if (
+            value !== null &&
+            value !== undefined &&
+            value !== '' &&
+            !(typeof value === 'number' && isNaN(value))
+          ) {
+            params.append(key, value);
+          }
+        }
+
+        let res = await axios.get(`http://localhost:3000/api/assignments/filters?${params.toString()}`, { headers });
+        setAssignments(res.data);
+      }
+      else {
+        const params = new URLSearchParams();
+
+        for (const key in form) {
+          const value = form[key];
+
+          // Skip null, undefined, empty string, or NaN
+          if (
+            value !== null &&
+            value !== undefined &&
+            value !== '' &&
+            !(typeof value === 'number' && isNaN(value))
+          ) {
+            params.append(key, value);
+          }
+        }
+
+        let res = await axios.get(`http://localhost:3000/api/expenditures/filters?${params.toString()}`,
+          { headers });
+        setExpenditures(res.data);
       }
 
       setForm({ asset_id: '', personnel_id: '', quantity: '', date: '' });
-      fetchData();
     } catch (err) {
       console.error('Error submitting form:', err);
       setMessage('Submission failed.');
@@ -141,9 +158,9 @@ export default function Assignments() {
           <tbody>
             {assignments.map((row) => (
               <tr key={row.id} className="text-center border-t border-green-700">
-                <td className="px-4 py-2">{new Date(row.assignment_date).toLocaleDateString()}</td>
-                <td className="px-4 py-2">{row.asset_name}</td>
-                <td className="px-4 py-2">{row.personnel_name}</td>
+                <td className="px-4 py-2">{new Date(row.date).toLocaleDateString()}</td>
+                <td className="px-4 py-2">{row.asset}</td>
+                <td className="px-4 py-2">{row.personnel}</td>
               </tr>
             ))}
           </tbody>
@@ -162,8 +179,8 @@ export default function Assignments() {
           <tbody>
             {expenditures.map((row) => (
               <tr key={row.id} className="text-center border-t border-green-700">
-                <td className="px-4 py-2">{new Date(row.expenditure_date).toLocaleDateString()}</td>
-                <td className="px-4 py-2">{row.asset_name}</td>
+                <td className="px-4 py-2">{new Date(row.date).toLocaleDateString()}</td>
+                <td className="px-4 py-2">{row.asset}</td>
                 <td className="px-4 py-2">{row.quantity}</td>
               </tr>
             ))}
