@@ -82,7 +82,7 @@ export default function Purchases() {
         <h1 className="text-3xl font-bold mb-6">Purchases</h1>
 
         {/* Filter Section */}
-        <div className="bg-[rgba(30,78,34,0.3)] p-4 rounded-lg mb-6 flex flex-wrap gap-4 items-center shadow-md">
+        <div className="bg-[rgba(208,225,210,0.61)] p-4 rounded-lg mb-6 flex flex-wrap gap-4 items-center shadow-md">
           <input
             type="text"
             name="baseId"

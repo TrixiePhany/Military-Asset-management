@@ -4,8 +4,8 @@ import background from '../assets/EveryPage.jpg';
 const metrics = [
   { title: 'Opening Balance', value: '1,200' },
   { title: 'Closing Balance', value: '1,150' },
-  { title: 'Net Movement', value: '+50', span: true },
-  { title: 'Assigned', value: '320' },
+  { title: 'Net Movement (click for pop-up)', value: '+50', span: true },
+  { title: 'Assigned', value: '20' },
   { title: 'Expended', value: '250' },
 ];
 
@@ -74,24 +74,27 @@ export default function Dashboard() {
 
         {/* Popup Section */}
         {showPopup && (
-          <div className="mt-12 bg-[rgba(30,78,34,0.7)] p-6 rounded-xl shadow-lg backdrop-blur-sm">
-            <h3 className="text-2xl font-bold mb-4">Net Movement Details</h3>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div>
-                <h4 className="text-lg font-semibold">Purchases</h4>
-                <p className="mt-2 text-white/90">Details will appear here.</p>
-              </div>
-              <div>
-                <h4 className="text-lg font-semibold">Transfer In</h4>
-                <p className="mt-2 text-white/90">Details will appear here.</p>
-              </div>
-              <div>
-                <h4 className="text-lg font-semibold">Transfer Out</h4>
-                <p className="mt-2 text-white/90">Details will appear here.</p>
-              </div>
-            </div>
-          </div>
-        )}
+  <div className="mt-12 bg-[rgba(30,78,34,0.7)] p-6 rounded-xl shadow-lg backdrop-blur-sm">
+    <h3 className="text-2xl font-bold mb-4">Net Movement Details</h3>
+    <div className="grid md:grid-cols-3 gap-6">
+      <div>
+        <h4 className="text-lg font-semibold">Purchases</h4>
+        <p className="mt-2 text-white/90">120 Vehicles purchased on 2025-06-10</p>
+        <p className="mt-1 text-white/90">80 Weapons purchased on 2025-06-18</p>
+      </div>
+      <div>
+        <h4 className="text-lg font-semibold">Transfer In</h4>
+        <p className="mt-2 text-white/90">30 Vehicles transferred from Base Bravo</p>
+        <p className="mt-1 text-white/90">20 Supplies transferred from Base Alpha</p>
+      </div>
+      <div>
+        <h4 className="text-lg font-semibold">Transfer Out</h4>
+        <p className="mt-2 text-white/90">25 Weapons sent to Base Echo</p>
+        <p className="mt-1 text-white/90">15 Vehicles dispatched to Base Zulu</p>
+      </div>
+    </div>
+  </div>
+)}
       </div>
     </div>
   );
