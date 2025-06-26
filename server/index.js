@@ -1,29 +1,26 @@
 const express = require('express');
-require('dotenv').config();
+require('dotenv').config(); 
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 const cors = require('cors');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
+const SECRET_KEY = process.env.SECRET_KEY;
 
-const SECRET_KEY = '11c3b4985ed58738c3273ae9b89e3777053c8d2d28b5febb591a3e6eb6ec0278';
-
-// Database connection
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'military_asset_db',
-  password: 'root',
-  port: 5432,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_DATABASE,
+  password: process.env.DB_PASSWORD,
+  port: parseInt(process.env.DB_PORT, 10),
 });
 
 // Middleware
-app.use(cors(
-  {
-    origin: 'http://localhost:5173',
-    credentials: true,
-  }
-));
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
 
 // RBAC Middleware // done
