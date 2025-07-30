@@ -1,5 +1,3 @@
-# KristalBallTask
-You are tasked with developing the initial framework for a Military Asset Management System that will enable commanders and logistics personnel to manage the movement, assignment and expenditure of critical assets (such as vehicles, weapons, and ammunition) across multiple bases. The system must provide transparency, streamline logistics and ensure accountability, while offering a secure and role-based solution.
 
 The system must facilitate:
 
