@@ -1,0 +1,53 @@
+# Node.js dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# dotenv environment variables
+.env
+.env.local
+.env.*.local
+
+# Compiled source (e.g., from TypeScript or Babel)
+dist/
+build/
+
+# Debugging
+.vscode/
+.idea/
+*.swp
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Coverage directory used by testing tools
+coverage/
+
+# Optional npm cache directory
+.npm/
+
+# PM2 process logs
+pids/
+*.log
+
+# SASS cache
+.sass-cache/
+
+# Optional: if using Docker
+docker-compose.override.yml
+
+# Optional: if using Prisma
+.prisma/
